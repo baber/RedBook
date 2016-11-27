@@ -122,25 +122,79 @@ import scala.annotation.tailrec
 //val aList = List(1, 2, 11, 4, 5, 6)
 //filter(aList)(_ > 4)
 
-def flatMap[A, B](list: List[A])(f: A => List[B]) : List[B] = {
-  @tailrec
-  def innerFlatMap[A,B](list: List[A], acc: List[B])(f: A => List[B]) : List[B] = {
-    list match {
-      case List() => acc
-      case x::xs => innerFlatMap(xs, acc ++ f(x))(f)
-    }
-  }
+//def flatMap[A, B](list: List[A])(f: A => List[B]) : List[B] = {
+//  @tailrec
+//  def innerFlatMap[A,B](list: List[A], acc: List[B])(f: A => List[B]) : List[B] = {
+//    list match {
+//      case List() => acc
+//      case x::xs => innerFlatMap(xs, acc ++ f(x))(f)
+//    }
+//  }
+//
+//  innerFlatMap(list, List())(f)
+//}
+//
+//flatMap(List(1,2,3))(a => List(a,a))
+//
 
-  innerFlatMap(list, List())(f)
+
+//val myPFunc: PartialFunction[Option[Int], String] = {
+//    case x: Some[Int] => "My integer is " + x.get
+//}
+//
+////val partialFunction = PartialFunction[Option[Int], String](myFunc)
+//
+////partialFunction(None)
+//
+//val myList = List(Some(1), None, Some(3))
+//myList.collect(myPFunc)
+
+
+// ------------------------------------------------------------------------------------
+
+//def mapIfIsDefined[A, B](list: List[A], f: PartialFunction[A,B]) = {
+//
+//  def inner[A, B](list: List[A], acc: List[B], f: PartialFunction[A,B]): List[B] = {
+//    list match {
+//      case List() => acc
+//      case x :: xs => {
+//        if (f.isDefinedAt(x))
+//          inner(xs, f(x) :: acc, f)
+//        else
+//          inner(xs, acc, f)
+//      }
+//    }
+//  }
+//
+//  inner(list.reverse, List(), f)
+//}
+//
+//val fullyDefined: PartialFunction[Int, Int] = { case x if x > 5 => x * x }
+//
+//mapIfIsDefined(List(11, 2, 3, 5, 9, 13), fullyDefined)
+
+// ----------------------------------------------------------------------------------
+//def zipWith[A](xs: List[A], ys: List[A])(f: (A,A) => A) : List[A] = {
+//
+//  def myFunc[A](xs: List[A], ys: List[A], acc: List[A])(f: (A,A) => A) : List[A] = {
+//    (xs,ys) match {
+//      case ((List(), _) | (_, List())) => acc
+//      case _ => myFunc(xs.tail, ys.tail, f(xs.head, ys.head) :: acc)(f)
+//    }
+//  }
+//
+//  myFunc(xs,ys, List())(f).reverse
+//}
+//
+//
+//zipWith(List(1), List(4,5))(_*_)
+
+// --------------------------------------------------------------------------------------
+
+
+def containsSequence[A](sequence: Seq[A], subsequence: Seq[A]) : Boolean = {
+
+  
+
+
 }
-
-flatMap(List(1,2,3))(a => List(a,a))
-
-
-
-
-
-
-
-
-

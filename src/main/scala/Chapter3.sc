@@ -192,9 +192,125 @@ import scala.annotation.tailrec
 // --------------------------------------------------------------------------------------
 
 
-def containsSequence[A](sequence: Seq[A], subsequence: Seq[A]) : Boolean = {
+// --------------------------------------------------------------------------------------
+//def matchFromHead[A](seq: List[A], subSeq: List[A]) : List[A] = {
+//  (seq, subSeq) match {
+//    case (Nil, _) | (_, Nil) => Nil
+//    case (x::xs, y::ys) => if (x == y) x :: matchFromHead(xs, ys) else Nil
+//  }
+//}
+//
+//
+//def containsSequence[A](sequence: List[A], subsequence: List[A]) : Boolean = {
+//  println(sequence)
+//  sequence match {
+//    case List() => false
+//    case _ => {
+//      if (matchFromHead(sequence, subsequence).size == subsequence.size)
+//        true
+//      else
+//        containsSequence(sequence.tail.dropWhile(_ != subsequence.head), subsequence)
+//
+//    }
+//  }
+//}
+//
+//
+//containsSequence(List(1,2,3,4,5,6,9,4,5,7,10), List(4,5,7))
 
-  
+// -----------------------------------------------------------------------------------------
+
+//sealed trait Tree[+A]
+//case class Branch[A](value: A, left: Option[Tree[A]] = None, right: Option[Tree[A]] = None) extends Tree[A]
 
 
+//def generateTree[A](depth: Int, f: () => A) : Tree[A] = {
+//  depth match {
+//    case 1 => Branch(f(), None, None)
+//    case x if x > 1 => Branch(f(), Some(generateTree(depth-1, f)), Some(generateTree(depth-1, f)))
+//  }
+//}
+
+
+def randomValueFunction() = {
+  new java.util.Random().nextInt(1000)
 }
+
+//def map[A,B](tree: Tree[A])(f : A => B) : Tree[B] = {
+//  tree match {
+//    case Branch(value, None, None) => Branch(f(value), None, None)
+//    case Branch(value, Some(left), None) => Branch(f(value), Some(map(left)(f)), None)
+//    case Branch(value, None, Some(right)) => Branch(f(value), None, Some(map(right)(f)))
+//    case Branch(value, Some(left), Some(right)) => Branch(f(value), Some(map(left)(f)), Some(map(right)(f)))
+//  }
+//}
+
+import com.bk.scala.redbook.datastructures._
+
+def fold[A, B](tree: BinaryTree[A], acc: B)(f: (B,A) => B) : B = {
+  tree match {
+    case BinaryTree(Some(value), None, None) => f(acc, value)
+    case BinaryTree(Some(value), Some(left), None) => fold(left, f(acc, value))(f)
+    case BinaryTree(Some(value), None, Some(right)) => fold(right, f(acc, value))(f)
+    case BinaryTree(Some(value), Some(left), Some(right)) => fold(right, fold(left, f(acc, value))(f))(f)
+  }
+}
+
+import com.bk.scala.redbook.datastructures.BinaryTree.::
+
+def map[A,B](f: A => B, tree: BinaryTree[A]) : BinaryTree[B] = {
+  fold(tree, BinaryTree[B](None, None, None))((a, b) => ::(a, f(b)))
+}
+
+
+val emptyTree = BinaryTree[Int](None, None, None)
+val myTree: BinaryTree[Int] = ::(::(::(::(::(emptyTree, 1), 5), 10), 78), 9)
+
+
+val countNodesUsingFold = fold(myTree, 0)((a,b) => a + 1)
+val maxValue = fold(myTree, 0)((a,b) => a.max(b))
+val treeStructure = fold(myTree, "")((a,b) => b + ", " + a)
+
+val mappedTree = map( (a: Int) => a*2, myTree)
+fold(mappedTree, "")((a,b) => b + ", " + a)
+
+
+
+
+
+//def generateUTRs() = {
+//  (1 to 500000 toStream) map { "UTR" + _}
+//}
+//
+//import java.io._
+//val pw = new PrintWriter(new File("/Users/baberkhalil/tmp/ats_test/utr.lst" ))
+//
+//for (utr <- generateUTRs()) {
+//  pw.write(s"${utr}\n")
+//}
+//
+//pw.close
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

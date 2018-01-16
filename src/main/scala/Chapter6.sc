@@ -51,19 +51,134 @@ def nextInt(current: Long): (Int, Long) = {
   (n, newSeed)
 }
 
-def nonNegativeInt(rng: RNG): (Int, RNG) = {
-  rng.nextInt
+
+//convertStreamToList(take(genSeqFromUnaryFunction(5L)(nextInt), 5))
+
+
+type Rand[+A] = RNG => (A, RNG)
+val int: Rand[Int] = _.nextInt
+
+def unit[A](a: A): Rand[A] =
+  rng => (a, rng)
+
+def map[A, B](rnd: Rand[A])(fn: A => B): Rand[B] = {
+  rnd andThen (tup => (fn(tup._1), tup._2))
+}
+
+val prefixWithString = map(int)((a: Int) => "MAPPED_VALUE:" + a)
+prefixWithString(SimpleRNG(1L))
+
+
+
+def map2[A, B, C](rnd1: Rand[A], rnd2: Rand[B], fn: (A, B) => C): Rand[C] = {
+
+  def myFunc: Rand[C] = {
+    rng => {
+      val a = rnd1(rng)
+      val b = rnd2(a._2)
+      val c = fn(a._1, b._1)
+      (c, b._2)
+    }
+  }
+
+  myFunc
 }
 
 
-convertStreamToList(take(genSeqFromUnaryFunction(5L)(nextInt), 5))
+val firstHalf: Rand[String] = { rng =>
+  val value = rng.nextInt
+  (s"FirstHalf ${value._1}", value._2)
+}
 
-def filter[A](f: A => Boolean, xs: List[A]) = {
-  for (x <- xs; if f(x)) yield x
+val secondHalf: Rand[Int] = { rng =>
+  val value = rng.nextInt
+  (value._1, value._2)
+}
+
+def myFunc(a: String, b: Int): (String, Int) = {
+  (a, b)
+}
+
+val myMappedRand = map2(firstHalf, secondHalf, myFunc)
+
+
+def sequence[A](rands: List[Rand[A]]): Rand[List[A]] = {
+
+  def foldStep(y: Rand[A], x: (RNG, List[A])): (RNG, List[A]) = {
+    val newTuple = y(x._1)
+    (newTuple._2, newTuple._1 :: x._2)
+  }
+
+  (rng: RNG) => {
+    val sequencedResult = rands.foldRight(Tuple2(rng, List[A]()))(foldStep)
+    (sequencedResult._2, sequencedResult._1)
+  }
+
 }
 
 
-//filter((x: Double) => x > 5.0, List[Double](3,6,9,1))
+val firstName: Rand[String] = { rng =>
+  val value = rng.nextInt
+  (s"FirstName ${value._1}", value._2)
+}
+
+
+val secondName: Rand[String] = { rng =>
+  val value = rng.nextInt
+  (s"SecondName ${value._1}", value._2)
+}
+
+val thirdName: Rand[String] = { rng =>
+  val value = rng.nextInt
+  (s"ThirdName ${value._1}", value._2)
+}
+
+
+val mySequencer = sequence(List(firstName, secondName, thirdName))
+
+//mySequencer(SimpleRNG(1L))._1
+
+val nonNegativeInt: Rand[Int] = { rng =>
+  rng.nextInt match {
+    case (x, y) if x < 0 => (x * -1, y)
+    case (x, y) => (x, y)
+  }
+}
+
+val rng = SimpleRNG(-167L)
+rng.nextInt._1
+nonNegativeInt(SimpleRNG(-167L))
+
+
+def mapWithRetry[A](x: Rand[A])(fn: A => Boolean): Rand[A] = {
+
+  def fx(rng: RNG): (A, RNG) = {
+    x(rng) match {
+      case (v, r) => {
+        if (fn(v)) (v, r) else fx(r)
+      }
+    }
+  }
+
+  fx
+}
+
+def isLessThanLastMultiple(ceiling: Int)(x: Int) = {
+  x + (ceiling - 1) - (x % ceiling) >= 0
+}
+
+def nonNegativeLessThan(n: Int): Rand[Int] = {
+  mapWithRetry(map(nonNegativeInt)(x => x % n))(isLessThanLastMultiple(n))
+
+}
+
+
+def randLessThan100 = nonNegativeLessThan(100)
+
+randLessThan100(SimpleRNG(1L))
+
+
+
 
 
 
